@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รพ.ประชาธิปัตย์ | Smart Schedule</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root { --bg: #fff0f3; --card: #ffffff; --border: #ff4d6d; --accent: #c9184a; --accent-dark: #800f2f; --text: #590d22; }
+        
+        /* สีประจำตัวพนักงาน (เข้มชัดเจน) */
+        .color-นุ่น { background: #ffccd5 !important; color: #590d22 !important; border-left: 5px solid #ff0a54; }
+        .color-พี่หมิว { background: #b7e4c7 !important; color: #1b4332 !important; border-left: 5px solid #2d6a4f; }
+        .color-พี่ซานิ { background: #bae6fd !important; color: #0c4a6e !important; border-left: 5px solid #0284c7; }
+        .color-น้องฮาย { background: #fef08a !important; color: #713f12 !important; border-left: 5px solid #ca8a04; }
+        .color-พี่ออย { background: #e9d5ff !important; color: #581c87 !important; border-left: 5px solid #9333ea; }
+        
+        body { background-color: var(--bg); color: var(--text); font-family: 'Prompt', sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { max-width: 600px; width: 100%; }
+        
+        .summary-card { background: white; border-radius: 20px; padding: 12px; border: 3px solid var(--border); margin-bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .summary-item { text-align: center; font-size: 0.8rem; font-weight: bold; padding: 8px; border-radius: 12px; border: 1px solid var(--border); }
+
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: white; padding: 10px; border-radius: 20px; border: 3px solid var(--border); }
+        .month-btn { background: var(--accent); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+
+        .calendar-card { background: var(--card); border-radius: 25px; padding: 10px; border: 3px solid var(--border); box-shadow: 0 10px 30px rgba(164, 19, 60, 0.2); margin-bottom: 15px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .day-head { text-align: center; font-size: 0.9rem; font-weight: 600; padding-bottom: 10px; color: var(--accent-dark); }
+        
+        .cal-cell { 
+            background: #fffafa; border: 2px solid #ffcad4; min-height: 130px; 
+            border-radius: 15px; padding: 6px; display: flex; flex-direction: column; 
+            overflow-y: auto; cursor: pointer; transition: 0.2s;
+        }
+        .cal-cell:hover { border-color: var(--accent); }
+        .date-num { font-size: 1.1rem; font-weight: bold; color: var(--accent-dark); }
+
+        .event-item { 
+            font-size: 0.8rem; font-weight: 600; margin-top: 5px; 
+            padding: 6px 10px; border-radius: 10px; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+        }
+
+        .input-card { background: var(--card); border-radius: 25px; padding: 25px; border: 3px solid var(--border); margin-bottom: 15px; }
+        .q-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .q-btn { background: #fff; border: 2px solid var(--border); padding: 12px; border-radius: 18px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+        .q-btn.active-u { background: var(--accent) !important; color: white !important; }
+
+        select, input[type="text"] { width: 100%; border: 3px solid var(--border); padding: 15px; border-radius: 18px; margin-bottom: 12px; box-sizing: border-box; font-family: 'Prompt'; font-size: 1rem; }
+        
+        .line-btn-small { background: #06C755; color: white; border: none; padding: 6px 16px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-left: 10px; vertical-align: middle; font-weight: bold; }
+        .main-btn { background: linear-gradient(135deg, #ff4d6d 0%, #800f2f 100%); color: white; border: none; width: 100%; padding: 20px; border-radius: 25px; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+        .history-card { background: white; border-radius: 25px; padding: 15px; border: 3px solid var(--border); max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="summary-card" id="summaryList"></div>
+    <div class="header-nav">
+        <button class="month-btn" onclick="changeMonth(-1)">❮</button>
+        <div id="displayDate" style="font-weight: bold; color: var(--accent-dark); font-size: 1.3rem;"></div>
+        <button class="month-btn" onclick="changeMonth(1)">❯</button>
+    </div>
+    <div class="calendar-card">
+        <div class="cal-grid">
+            <div class="day-head" style="color:#ff0a54;">อา.</div><div class="day-head">จ.</div><div class="day-head">อ.</div><div class="day-head">พ.</div><div class="day-head">พฤ.</div><div class="day-head">ศ.</div><div class="day-head" style="color:#0284c7;">ส.</div>
+        </div>
+        <div id="calendarGrid" class="cal-grid"></div>
+    </div>
+    <div class="input-card">
+        <div style="text-align:center; margin-bottom:20px;">
+            <span id="selectedText" style="font-weight:bold; color: var(--accent-dark); font-size: 1.1rem;">📍 เลือกวันที่</span>
+            <button class="line-btn-small" onclick="sendToLine()">ส่ง LINE</button>
+        </div>
+        <div class="q-btn-group">
+            <div class="q-btn" onclick="selectStaff('นุ่น', this)">นุ่น</div>
+            <div class="q-btn" onclick="selectStaff('พี่หมิว', this)">พี่หมิว</div>
+            <div class="q-btn" onclick="selectStaff('พี่ซานิ', this)">พี่ซานิ</div>
+            <div class="q-btn" onclick="selectStaff('น้องฮาย', this)">น้องฮาย</div>
+            <div class="q-btn" onclick="selectStaff('พี่ออย', this)">พี่ออย</div>
+        </div>
+        <select id="workType"><option value="เช้า">🌤️ เช้า</option><option value="บ่าย">⛅ บ่าย</option><option value="ดึก">🌙 ดึก</option><option value="24">✨ 24 ชม.</option></select>
+        <input type="text" id="remark" placeholder="Remark...">
+        <button class="main-btn" onclick="saveData()">💖 บันทึกเวร</button>
+    </div>
+    <div class="history-card" id="historyLog"></div>
+</div>
+
+<script>
+    const SCRIPT_URL = "ใส่_URL_เว็บแอป_ของคุณที่นี่";
+    let currentViewDate = new Date();
+    let allEvents = [];
+    let selectedStaff = "";
+    let selectedDateStr = "";
+
+    function selectStaff(name, el) {
+        selectedStaff = name;
+        document.querySelectorAll('.q-btn').forEach(b => { b.style.backgroundColor = "white"; b.style.color = "var(--text)"; b.classList.remove('active-u'); });
+        el.classList.add('active-u');
+        const colors = {"นุ่น":"#ff4d6d","พี่หมิว":"#40916c","พี่ซานิ":"#0ea5e9","น้องฮาย":"#eab308","พี่ออย":"#a855f7"};
+        el.style.backgroundColor = colors[name];
+        el.style.color = "white";
+    }
+
+    function changeMonth(val) { currentViewDate.setMonth(currentViewDate.getMonth() + val); renderCalendar(); }
+
+    async function pullData() {
+        if (!SCRIPT_URL.startsWith("http")) return;
+        try {
+            const res = await fetch(SCRIPT_URL);
+            allEvents = await res.json();
+            renderCalendar(); updateSummary();
+        } catch (e) { console.error("Sync Error"); }
+    }
+
+    function saveData() {
+        if (!selectedStaff || !selectedDateStr) return alert("เลือกวันที่และคนก่อนครับ");
+        const type = document.getElementById('workType').value;
+        const entry = { id: Date.now(), name: selectedStaff, type: type, date: selectedDateStr, ts: new Date().toLocaleTimeString() };
+        allEvents.unshift(entry);
+        renderCalendar(); updateSummary(); renderHistory();
+        if (SCRIPT_URL.startsWith("http")) fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "insert", ...entry }) });
+    }
+
+    function renderHistory() {
+        const log = document.getElementById('historyLog');
+        log.innerHTML = allEvents.slice(0, 10).map(h => `<div style="border-bottom:1px dashed #ffb3c1; padding:8px 0; display:flex; justify-content:space-between;"><span>[${h.ts}] ${h.name} (${h.date})</span><button style="border:none; background:none; color:red; cursor:pointer;" onclick="deleteData(${h.id}, '${h.date}', '${h.name}')">ลบ</button></div>`).join("");
+    }
+
+    async function deleteData(id, date, name) {
+        if (!confirm(`ลบเวรของ ${name}?`)) return;
+        allEvents = allEvents.filter(e => e.id !== id);
+        renderCalendar(); updateSummary(); renderHistory();
+        if (SCRIPT_URL.startsWith("http")) fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "delete", date: date, name: name }) });
+    }
+
+    function updateSummary() {
+        const staff = ["นุ่น", "พี่หมิว", "พี่ซานิ", "น้องฮาย", "พี่ออย"];
+        document.getElementById('summaryList').innerHTML = staff.map(name => {
+            const count = allEvents.filter(e => e.name === name).length;
+            return `<div class="summary-item color-${name.replace(/\s+/g,'')}">${name}: ${count}</div>`;
+        }).join("");
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid'); grid.innerHTML = "";
+        const year = currentViewDate.getFullYear();
+        const month = currentViewDate.getMonth();
+        const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+        document.getElementById('displayDate').innerText = `${monthNames[month]} ${year+543}`;
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for(let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
+        for(let i=1; i<=daysInMonth; i++) {
+            const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
+            const dayOfWeek = new Date(year, month, i).getDay();
+            const cell = document.createElement('div');
+            cell.className = 'cal-cell';
+            if (selectedDateStr === dateStr) cell.style.borderColor = "var(--accent)";
+            cell.innerHTML = `<span class="date-num" style="color:${dayOfWeek===0?'#ff0a54':dayOfWeek===6?'#0284c7':''};">${i}</span>`;
+            allEvents.filter(e => e.date === dateStr).forEach(ev => {
+                const div = document.createElement('div');
+                div.className = `event-item color-${ev.name.replace(/\s+/g, '')}`;
+                div.innerHTML = `<span>${ev.name}:${ev.type}</span>`;
+                cell.appendChild(div);
+            });
+            cell.onclick = () => { selectedDateStr = dateStr; document.getElementById('selectedText').innerText = `📍 วันที่เลือก: ${i}`; renderCalendar(); };
+            grid.appendChild(cell);
+        }
+    }
+
+    function sendToLine() {
+        if (!selectedDateStr) return alert("เลือกวันที่ก่อนจ้า");
+        const duties = allEvents.filter(e => e.date === selectedDateStr);
+        let msg = `📅 เวรวันที่: ${selectedDateStr}\n----------\n` + duties.map((d, i) => `${i+1}. ${d.name} (${d.type})`).join("\n");
+        window.open(`https://line.me{encodeURIComponent(msg)}`, '_blank');
+    }
+
+    renderCalendar(); pullData();
+</script>
+</body>
+</html>
