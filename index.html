@@ -81,7 +81,7 @@
             <div class="q-btn" onclick="selectStaff('น้องฮาย', this)">น้องฮาย</div>
             <div class="q-btn" onclick="selectStaff('พี่ออย', this)">พี่ออย</div>
         </div>
-        <select id="workType"><option value="เช้า">🌤️ เช้า</option><option value="บ่าย">⛅ บ่าย</option><option value="ดึก">🌙 ดึก</option><option value="24">✨ 24 ชม.</option></select>
+        <select id="workType"><option value="เช้า">🌤️ เช้า</option><option value="ลาป่วย"> ลาป่วย</option><option value="ลากิจ"> ลากิจ</option><option value="24">✨ 24 ชม.</option></select>
         <input type="text" id="remark" placeholder="Remark...">
         <button class="main-btn" onclick="saveData()">💖 บันทึกเวร</button>
     </div>
@@ -89,7 +89,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "ใส่_URL_เว็บแอป_ของคุณที่นี่";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTxtPQCxMMw03H0AAcv463ls0BqDxE9qjqiWJrpKSqdh_30t1--38wQpwNP1fZbu6Q/exec";
     let currentViewDate = new Date();
     let allEvents = [];
     let selectedStaff = "";
